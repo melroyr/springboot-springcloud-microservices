@@ -1,5 +1,9 @@
 package org.example.storeservice.service;
 
+import org.example.storeservice.dto.response.StoreResponse;
+
+import java.util.List;
+
 public interface StoreService {
-    boolean isInStock(String skuCode);
+    List<StoreResponse> isInStock(List<String> skuCode);
 }

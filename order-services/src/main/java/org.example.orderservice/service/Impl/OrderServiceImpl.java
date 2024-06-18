@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.orderservice.dto.request.OrderLineItemsDto;
 import org.example.orderservice.dto.request.OrderRequest;
+import org.example.orderservice.dto.response.StoreResponse;
 import org.example.orderservice.model.Order;
 import org.example.orderservice.model.OrderLineItems;
 import org.example.orderservice.repository.OrderRepository;
@@ -11,6 +12,7 @@ import org.example.orderservice.service.OrderService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,7 +28,7 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
-    public void placeOrder(OrderRequest orderRequest) {
+    public boolean placeOrder(OrderRequest orderRequest) {
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
 
@@ -37,20 +39,26 @@ public class OrderServiceImpl implements OrderService {
 
         order.setOrderLineItemsList(orderLineItems);
 
-        Boolean result =webClient.get() //client oluşturuldu
-                .uri("http://localhost:8080/api/inventory")//inventory servisine istek atılıyor
+        List<String> skuCodes = order.getOrderLineItemsList().stream() //siparişteki bütün ürünlerin skuCode'ları listede tutulur
+                .map(OrderLineItems::getSkuCode)
+                .toList();
+
+        //sipariş tamamlanmadan önce ürünlere ait stok kontrolü yapılır, store servisine istek atılır
+        StoreResponse[] storeResponseArray = webClient.get() //client oluşturuldu
+                .uri("http://localhost:8082/api/store",
+                        uriBuilder -> uriBuilder.queryParam("skuCode", skuCodes).build()) //skuCode listesi parametre gönderilir
                 .retrieve() //response alınır
-                .bodyToMono(Boolean.class) //bodyToMono ile dönüş tipi belirlenir
-                .block(); //block ile response beklenir ve sonuç döner response beklenilmesi lazım çünkü stok kontrolü yapılacak
+                .bodyToMono(StoreResponse[].class) //response'u StoreResponse tipine çevir
+                .block(); //response beklenir ve response geldiğinde bu stockResponseArray'a eşitlenir
+
+        boolean allProductsInStock = Arrays.stream(storeResponseArray).allMatch(StoreResponse::isInStock); //siparişteki tüm ürünlerin stok durumu
 
 
-
-        if(result){
+        if (Boolean.TRUE.equals(allProductsInStock)) { // eğer stok varsa sipariş tamamlanır
             orderRepository.save(order);
-
-        }
-        else {
-            throw new IllegalArgumentException("Product is out of stock");
+            return true;
+        } else {
+            return false;
         }
 
 

@@ -18,8 +18,12 @@ public class OrderController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public String placeOrder(@RequestBody OrderRequest orderRequest) {
-        orderService.placeOrder(orderRequest);
-        return "Order placed succesfully";
+        boolean isOrderCompleted = orderService.placeOrder(orderRequest);
+        if(isOrderCompleted) {
+            return "Order placed succesfully";
+        }else{
+            return "Order could not be placed , stock is not enough";
+        }
     }
 
 }
