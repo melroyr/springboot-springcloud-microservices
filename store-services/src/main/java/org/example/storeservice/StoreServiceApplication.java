@@ -1,19 +1,16 @@
 package org.example.storeservice;
 
-import org.example.storeservice.model.Store;
-import org.example.storeservice.repository.StoreRepository;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication
-@EnableEurekaClient
+@EnableDiscoveryClient
 public class StoreServiceApplication {
 
-    public static void main(String[] args) {SpringApplication.run(StoreServiceApplication.class, args);}
+    public static void main(String[] args) {
+        SpringApplication.run(StoreServiceApplication.class, args);
+    }
 
     /*
     @Bean
