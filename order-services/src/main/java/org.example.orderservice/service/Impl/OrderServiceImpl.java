@@ -24,7 +24,7 @@ import java.util.UUID;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-    private final WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
 
 
     @Override
@@ -44,8 +44,8 @@ public class OrderServiceImpl implements OrderService {
                 .toList();
 
         //sipariş tamamlanmadan önce ürünlere ait stok kontrolü yapılır, store servisine istek atılır
-        StoreResponse[] storeResponseArray = webClient.get() //client oluşturuldu
-                .uri("http://localhost:8082/api/store",
+        StoreResponse[] storeResponseArray = webClientBuilder.build().get() //client oluşturuldu
+                .uri("http://store-service/api/store",
                         uriBuilder -> uriBuilder.queryParam("skuCode", skuCodes).build()) //skuCode listesi parametre gönderilir
                 .retrieve() //response alınır
                 .bodyToMono(StoreResponse[].class) //response'u StoreResponse tipine çevir
