@@ -9,7 +9,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class WebClientConfig {
 
     @Bean
-    @LoadBalanced
+    @LoadBalanced //== yük dengesi,isteklerin mevcut hizmet örnekleri arasında dağıtılmasını sağlar , hangi hizmet örneğinin daha az yüklü olduğunu belirler ve isteği o örneğe yönlendirir.
+    //bir mikro hizmetin birden fazla örneği (instance) çalışıyorsa, bu anotasyon sayesinde WebClient bu örnekleri keşfedebilir ve istekleri bu örnekler arasında dağıtabilir.
     public WebClient.Builder webClientBuilder(){
         return WebClient.builder();
     }
