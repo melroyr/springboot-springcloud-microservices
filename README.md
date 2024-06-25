@@ -9,35 +9,35 @@ This project showcases a microservices architecture built with Spring Boot and S
 - **Technology**: Eureka Server.
 - **Responsibilities**: Registers all services and enables dynamic discovery of services, allowing for load balancing and failover.
 
-### 2. Product Service
+- ### 2. API Gateway
+- **Function**: Acts as a single entry point for all external requests.
+- **Technology**: Spring Cloud Gateway.
+- **Responsibilities**: Routes requests to appropriate services, providing security and load balancing.
+
+### 3. Product Service
 - **Function**: Manages product information.
 - **Technology**: Spring Boot, MongoDB.
 - **Responsibilities**: Provides CRUD operations for product data.
 
-### 3. Order Service
+### 4. Order Service
 - **Function**: Handles order creation, processing, and persistence.
 - **Technology**: Spring Boot, PostgreSQL.
 - **Responsibilities**: Manages orders and interacts with the Store Service to check product availability.
 
-### 4. Store Service
+### 5. Store Service
 - **Function**: Tracks product stock levels.
 - **Technology**: Spring Boot, PostgreSQL.
 - **Responsibilities**: Manages stock levels for products, ensuring orders can be fulfilled.
-
-### 5. API Gateway
-- **Function**: Acts as a single entry point for all external requests.
-- **Technology**: Spring Cloud Gateway.
-- **Responsibilities**: Routes requests to appropriate services, providing security and load balancing.
 
 ## Project Structure
 
 The project is organized into multiple modules, each representing a specific service:
 
 - **discovery-server**: Eureka Server configuration and security setup.
+- **api-gateway**: API Gateway configuration including routing rules and security settings.
 - **product-services**: Product Service implementation including controllers, models, repository, and service logic.
 - **order-services**: Order Service implementation including controllers, models, repository, and service logic. Includes a WebClientConfig class for communication with the Store Service.
 - **store-services**: Store Service implementation including controllers, models, repository, and service logic.
-- **api-gateway**: API Gateway configuration including routing rules and security settings.
 
 ## Setup and Execution
 
@@ -60,18 +60,18 @@ mvn spring-boot:run
 
 #### Order of Starting Services
 1. Discovery Server (`discovery-server` module)
-2. Product Service (`product-services` module)
-3. Store Service (`store-services` module)
-4. Order Service (`order-services` module)
-5. API Gateway (`api-gateway` module)
+2. API Gateway (`api-gateway` module)
+3. Product Service (`product-services` module)
+4. Store Service (`store-services` module)
+5. Order Service (`order-services` module)
 
 ## Features
 
 - **Service Discovery**: Utilizes Eureka Server for service registration and discovery.
+- **Security**: Discovery Server secured with basic authentication.
 - **Load Balancing**: Provided by the API Gateway for routing requests to backend services.
 - **Database Integration**: Services use MongoDB or PostgreSQL for data storage.
 - **RESTful APIs**: Expose RESTful endpoints for interaction.
-- **Security**: Discovery Server secured with basic authentication.
 
 ## Usage
 
