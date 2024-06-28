@@ -28,7 +28,7 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
-    public boolean placeOrder(OrderRequest orderRequest) {
+    public String placeOrder(OrderRequest orderRequest) {
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
 
@@ -56,9 +56,9 @@ public class OrderServiceImpl implements OrderService {
 
         if (Boolean.TRUE.equals(allProductsInStock)) { // eğer stok varsa sipariş tamamlanır
             orderRepository.save(order);
-            return true;
+            return "Order placed successfully";
         } else {
-            return false;
+            throw new IllegalArgumentException("Product is not in stock , please try again later");
         }
 
 
