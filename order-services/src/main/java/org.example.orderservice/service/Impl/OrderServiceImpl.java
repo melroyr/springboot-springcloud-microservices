@@ -1,5 +1,7 @@
 package org.example.orderservice.service.Impl;
 
+import brave.Span;
+import brave.Tracer;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.orderservice.dto.request.OrderLineItemsDto;
@@ -25,7 +27,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final WebClient.Builder webClientBuilder;
-
+    private final Tracer tracer;
 
     @Override
     public String placeOrder(OrderRequest orderRequest) {
@@ -43,22 +45,29 @@ public class OrderServiceImpl implements OrderService {
                 .map(OrderLineItems::getSkuCode)
                 .toList();
 
-        //sipariş tamamlanmadan önce ürünlere ait stok kontrolü yapılır, store servisine istek atılır
-        StoreResponse[] storeResponseArray = webClientBuilder.build().get() //client oluşturuldu
-                .uri("http://store-service/api/store",
-                        uriBuilder -> uriBuilder.queryParam("skuCode", skuCodes).build()) //skuCode listesi parametre gönderilir
-                .retrieve() //response alınır
-                .bodyToMono(StoreResponse[].class) //response'u StoreResponse tipine çevir
-                .block(); //response beklenir ve response geldiğinde bu stockResponseArray'a eşitlenir
+        Span storeServiceLookUp = tracer.nextSpan().name("storeServiceLookUp"); //// Yeni bir span oluşturur ve isimlendirir
+        try (Tracer.SpanInScope spanInScope = tracer.withSpanInScope(storeServiceLookUp.start())) { // Span'i başlatır ve Kod bloğu boyunca span aktif olur
 
-        boolean allProductsInStock = Arrays.stream(storeResponseArray).allMatch(StoreResponse::isInStock); //siparişteki tüm ürünlerin stok durumu
+            //sipariş tamamlanmadan önce ürünlere ait stok kontrolü yapılır, store servisine istek atılır
+            StoreResponse[] storeResponseArray = webClientBuilder.build().get() //client oluşturuldu
+                    .uri("http://store-service/api/store",
+                            uriBuilder -> uriBuilder.queryParam("skuCode", skuCodes).build()) //skuCode listesi parametre gönderilir
+                    .retrieve() //response alınır
+                    .bodyToMono(StoreResponse[].class) //response'u StoreResponse tipine çevir
+                    .block(); //response beklenir ve response geldiğinde bu stockResponseArray'a eşitlenir
+
+            boolean allProductsInStock = Arrays.stream(storeResponseArray).allMatch(StoreResponse::isInStock); //siparişteki tüm ürünlerin stok durumu
 
 
-        if (Boolean.TRUE.equals(allProductsInStock)) { // eğer stok varsa sipariş tamamlanır
-            orderRepository.save(order);
-            return "Order placed successfully";
-        } else {
-            throw new IllegalArgumentException("Product is not in stock , please try again later");
+            if (Boolean.TRUE.equals(allProductsInStock)) { // eğer stok varsa sipariş tamamlanır
+                orderRepository.save(order);
+                return "Order placed successfully";
+            } else {
+                throw new IllegalArgumentException("Product is not in stock , please try again later");
+            }
+
+        } finally {
+            storeServiceLookUp.finish(); //  // Span'i sonlandırır
         }
 
 
