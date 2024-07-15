@@ -16,7 +16,6 @@ import java.util.concurrent.CompletableFuture;
 @RequestMapping("/api/order")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "http://localhost:3000")
 public class OrderController {
 
     private final OrderService orderService;
